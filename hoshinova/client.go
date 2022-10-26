@@ -36,3 +36,18 @@ func (client *Client) GetVersion() (string, error) {
 
 	return string(body), nil
 }
+
+// Returns the currently loaded configuration on the server
+func (client *Client) GetConfig() (string, error) {
+	url := url.URL{Scheme: "http", Host: client.Host, Path: "/api/config"}
+
+	res, err := client.HTTPc.Get(url.String())
+	if err != nil {
+		return "", err
+	}
+
+	defer res.Body.Close()
+	body, _ := io.ReadAll(res.Body)
+
+	return string(body), nil
+}
