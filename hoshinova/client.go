@@ -1,6 +1,7 @@
 package hoshinova
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -38,6 +39,11 @@ type Status struct {
 type TaskItem struct {
 	Task   `json:"task"`
 	Status `json:"status"`
+}
+
+type CreateTask struct {
+	VideoUrl        string `json:"video_url"`
+	OutputDirectory string `json:"output_directory"`
 }
 
 // Returns a client ready to call Hoshinova API
@@ -96,4 +102,19 @@ func (client *Client) GetTasks() ([]TaskItem, error) {
 	json.Unmarshal(body, &taskItems)
 
 	return taskItems, nil
+}
+
+// Creates a new task with the given `video_url` and `output_dir`
+func (client *Client) CreateTask(video_url, output_dir string) error {
+	createTask := CreateTask{video_url, output_dir}
+
+	url := url.URL{Scheme: "http", Host: client.Host, Path: "/api/task"}
+	data, _ := json.Marshal(createTask)
+
+	resp, err := client.HTTPc.Post(url.String(), "application/json", bytes.NewBuffer(data))
+	if err != nil || resp.StatusCode != http.StatusAccepted {
+		return err
+	}
+
+	return nil
 }
